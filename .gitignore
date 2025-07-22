@@ -1,0 +1,51 @@
+# --- Python bytecode / builds ---
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+dist/
+build/
+
+# --- Virtual envs & local config ---
+.venv/
+.env
+.env.*
+*.sqlite3
+
+# --- Logs / debug / coverage ---
+*.log
+logs/
+.coverage*
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.dmypy.json
+
+# --- Data files (keep README if you add one) ---
+data/*
+!data/.gitkeep
+!data/README.md
+
+# --- OS / Editor cruft ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.iml
+
+# --- Jupyter/VS Code misc ---
+.ipynb_checkpoints/
+*.code-workspace
+
+# --- Docker / Compose overrides ---
+docker-compose.override.yml
+*.pid
+
+# --- UV / Poetry / Pipenv caches (if you use them) ---
+.uv/
+.poetry/
+pip-wheel-metadata/
+
+
+# --- Data ---
+data/*
