@@ -13,4 +13,12 @@ provider_drg_stats (provider_id, drg_id, total_discharges, avg_covered_charges, 
 - Return only the SQL query or OUT_OF_SCOPE, nothing else.
 
 User question: {question}
+"""
+
+SUMMARY_PROMPT_TEMPLATE = """
+You are a helpful assistant for a hospital cost navigator app.
+Given the following user question and SQL query results, answer the question in a clear, concise, and natural way for a patient. If the data is empty, say so. Do not mention SQL or database in your answer.
+
+User question: {question}
+SQL results: {data}
 """ 

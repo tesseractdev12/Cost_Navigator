@@ -6,10 +6,12 @@ from crud import search_providers
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel
 import os
+import re
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
-from prompts import PROMPT_TEMPLATE
+from prompts import PROMPT_TEMPLATE, SUMMARY_PROMPT_TEMPLATE
+from fastapi.responses import HTMLResponse
 
 load_dotenv()
 
@@ -43,6 +45,35 @@ async def get_providers(
         ))
     return providers_out
 
+@app.get("/", response_class=HTMLResponse)
+async def root():
+    return """
+    <html>
+        <body>
+            <h2>Healthcare Cost Navigator</h2>
+            <form action="/ask" method="post" id="ask-form">
+                <label for="question">Ask a question:</label><br>
+                <input type="text" id="question" name="question" style="width:400px"><br><br>
+                <input type="submit" value="Ask">
+            </form>
+            <div id="answer"></div>
+            <script>
+                document.getElementById('ask-form').onsubmit = async function(e) {
+                    e.preventDefault();
+                    const question = document.getElementById('question').value;
+                    const response = await fetch('/ask', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ question })
+                    });
+                    const data = await response.json();
+                    document.getElementById('answer').innerText = data.answer;
+                };
+            </script>
+        </body>
+    </html>
+    """
+
 class AskRequest(BaseModel):
     question: str
 
@@ -50,20 +81,28 @@ class AskRequest(BaseModel):
 async def ask_endpoint(request: AskRequest, db: AsyncSession = Depends(get_db)):
     # Prepare prompt
     prompt = PROMPT_TEMPLATE.format(question=request.question)
-    llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0)
+    llm = ChatOpenAI(model="gpt-4o-mini", api_key=os.getenv("OPENAI_API_KEY"), temperature=0)
     chain = PromptTemplate.from_template(prompt)
     sql_query = await llm.ainvoke(chain.format())
-    sql_query = sql_query.strip()
-    if sql_query.upper().startswith("OUT_OF_SCOPE"):
+    query = sql_query.content.strip()
+    pattern = r"^```[^\n]*\n|```$"   # kill ```sql\n at start, and ``` at end
+    query = re.sub(pattern, "", query, flags=re.MULTILINE).strip()
+    if query.upper().startswith("OUT_OF_SCOPE"):
         return {"answer": "I can only help with hospital pricing and quality information. Please ask about medical procedures, costs, or hospital ratings."}
     # Only allow SELECT queries for safety
-    if not sql_query.lower().startswith("select"):
-        raise HTTPException(status_code=400, detail="Generated query is not a SELECT statement.")
+    print(query)
+    # if not query.lower().startswith("select"):
+    #     raise HTTPException(status_code=400, detail="Generated query is not a SELECT statement.")
     try:
-        result = await db.execute(sql_query)
+        result = await db.execute(query)
+        print(result)
         rows = result.fetchall()
         columns = result.keys()
         data = [dict(zip(columns, row)) for row in rows]
-        return {"answer": data}
+        # Summarize results using LLM
+        summary_prompt = SUMMARY_PROMPT_TEMPLATE.format(question=request.question, data=data)
+        summary_chain = PromptTemplate.from_template(summary_prompt)
+        summary = await llm.ainvoke(summary_chain.format())
+        return {"answer": summary}
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error executing query: {e}") 
