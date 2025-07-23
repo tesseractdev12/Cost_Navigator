@@ -4,7 +4,7 @@ import asyncio
 import random
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
-from cost_navigator.migration.models import Base, Provider, DRG, ProviderDRGStat
+from models import Base, Provider, DRG, ProviderDRGStat
 from sqlalchemy.future import select
 
 DATABASE_URL = os.getenv('DATABASE_URL', 'postgresql+asyncpg://myuser:1234@localhost:5432/cost_navigator')
