@@ -20,4 +20,4 @@ class ProviderOut(BaseModel):
     total_discharges: Optional[int]
 
     class Config:
-        orm_mode = True 
+        from_attributes = True

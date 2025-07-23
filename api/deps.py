@@ -8,4 +8,4 @@ AsyncSessionLocal = sessionmaker(engine, expire_on_commit=False, class_=AsyncSes
 
 async def get_db():
     async with AsyncSessionLocal() as session:
-        yield session 
+        yield session

@@ -9,7 +9,6 @@ build/
 # --- Virtual envs & local config ---
 .venv/
 .env
-.env.*
 *.sqlite3
 
 # --- Logs / debug / coverage ---

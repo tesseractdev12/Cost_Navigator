@@ -10,8 +10,9 @@ import re
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
-from prompts import PROMPT_TEMPLATE, SUMMARY_PROMPT_TEMPLATE
+from api.prompts import PROMPT_TEMPLATE, SUMMARY_PROMPT_TEMPLATE
 from fastapi.responses import HTMLResponse
+from sqlalchemy import text
 
 load_dotenv()
 
@@ -79,30 +80,44 @@ class AskRequest(BaseModel):
 
 @app.post('/ask')
 async def ask_endpoint(request: AskRequest, db: AsyncSession = Depends(get_db)):
-    # Prepare prompt
-    prompt = PROMPT_TEMPLATE.format(question=request.question)
     llm = ChatOpenAI(model="gpt-4o-mini", api_key=os.getenv("OPENAI_API_KEY"), temperature=0)
-    chain = PromptTemplate.from_template(prompt)
-    sql_query = await llm.ainvoke(chain.format())
-    query = sql_query.content.strip()
-    pattern = r"^```[^\n]*\n|```$"   # kill ```sql\n at start, and ``` at end
-    query = re.sub(pattern, "", query, flags=re.MULTILINE).strip()
+    # Step 1: Generate SQL query from question
+    try:
+        prompt = PROMPT_TEMPLATE.format(question=request.question)
+        chain = PromptTemplate.from_template(prompt)
+        sql_query_resp = await llm.ainvoke(chain.format())
+        sql_query = sql_query_resp.content.strip() if hasattr(sql_query_resp, 'content') else str(sql_query_resp).strip()
+        # Remove code fences (```sql ... ```)
+        pattern = r"^```[a-zA-Z]*\n|```$"
+        query = re.sub(pattern, "", sql_query, flags=re.MULTILINE).strip()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generating SQL from LLM: {e}")
+
+    # Step 2: Handle out-of-scope and validate query
     if query.upper().startswith("OUT_OF_SCOPE"):
         return {"answer": "I can only help with hospital pricing and quality information. Please ask about medical procedures, costs, or hospital ratings."}
-    # Only allow SELECT queries for safety
-    print(query)
-    # if not query.lower().startswith("select"):
-    #     raise HTTPException(status_code=400, detail="Generated query is not a SELECT statement.")
+    if not query.lower().startswith("select"):
+        raise HTTPException(status_code=400, detail="Generated query is not a SELECT statement.")
+
+    # Step 3: Execute SQL and fetch results
     try:
-        result = await db.execute(query)
-        print(result)
+        print("Here issql_query", query)
+        result = await db.execute(text(query))
+
+        
         rows = result.fetchall()
         columns = result.keys()
         data = [dict(zip(columns, row)) for row in rows]
-        # Summarize results using LLM
+        print("Here is result", data)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error executing query: {e}")
+
+    # Step 4: Summarize results using LLM
+    try:
         summary_prompt = SUMMARY_PROMPT_TEMPLATE.format(question=request.question, data=data)
         summary_chain = PromptTemplate.from_template(summary_prompt)
-        summary = await llm.ainvoke(summary_chain.format())
+        summary_resp = await llm.ainvoke(summary_chain.format())
+        summary = summary_resp.content.strip() if hasattr(summary_resp, 'content') else str(summary_resp).strip()
         return {"answer": summary}
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Error executing query: {e}") 
+        raise HTTPException(status_code=500, detail=f"Error generating summary from LLM: {e}") 
