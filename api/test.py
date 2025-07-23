@@ -43,3 +43,27 @@ print(rows)
 #         rows = result.mappings().all()   # list of dict-like rows
 #     await engine.dispose()
 #     return rows
+
+
+
+
+"""SELECT 
+    p.id AS provider_id,
+    p.name,
+    p.address,
+    p.city,
+    p.state,
+    p.zip_code,
+    p.star_rating,
+    d.id AS drg_id,
+    d.description AS drg_description,
+    s.total_discharges,
+    s.avg_covered_charges,
+    s.avg_total_payments,
+    s.avg_medicare_payments
+FROM providers p
+JOIN provider_drg_stats s ON p.id = s.provider_id
+JOIN drgs d ON s.drg_id = d.id
+WHERE p.id = '010001'
+  AND d.id = '023'
+LIMIT 5;"""

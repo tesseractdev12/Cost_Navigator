@@ -115,9 +115,14 @@ async def ask_endpoint(request: AskRequest, db: AsyncSession = Depends(get_db)):
     # Step 4: Summarize results using LLM
     try:
         summary_prompt = SUMMARY_PROMPT_TEMPLATE.format(question=request.question, data=data)
-        summary_chain = PromptTemplate.from_template(summary_prompt)
-        summary_resp = await llm.ainvoke(summary_chain.format())
+        print(type(data))
+        # summary_chain = PromptTemplate.from_template(summary_prompt)
+        # print("Here is summary_chain", summary_chain)
+        summary_resp = await llm.ainvoke(summary_prompt)
+        # print("Here is summary_resp", summary_resp)
+
         summary = summary_resp.content.strip() if hasattr(summary_resp, 'content') else str(summary_resp).strip()
+
         return {"answer": summary}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error generating summary from LLM: {e}") 
