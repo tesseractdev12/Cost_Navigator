@@ -1,0 +1,8 @@
+fastapi
+uvicorn[standard]
+sqlalchemy[asyncio]
+asyncpg
+pandas
+langchain
+langchain-openai
+python-dotenv 

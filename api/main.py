@@ -1,8 +1,8 @@
 from fastapi import FastAPI, Depends, Query, HTTPException
 from typing import Optional, List
-from deps import get_db
-from schemas import ProviderOut, DRGOut
-from crud import search_providers
+from api.deps import get_db
+from api.schemas import ProviderOut, DRGOut
+from api.crud import search_providers
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel
 import os
@@ -52,12 +52,22 @@ async def root():
     <html>
         <body>
             <h2>Healthcare Cost Navigator</h2>
+            <h3>Ask a Question (AI Assistant)</h3>
             <form action="/ask" method="post" id="ask-form">
                 <label for="question">Ask a question:</label><br>
                 <input type="text" id="question" name="question" style="width:400px"><br><br>
                 <input type="submit" value="Ask">
             </form>
             <div id="answer"></div>
+            <hr>
+            <h3>Search Hospitals by DRG, ZIP, and Radius</h3>
+            <form id="provider-search">
+                <input type="text" name="drg" placeholder="DRG code or description">
+                <input type="text" name="zip" placeholder="ZIP code">
+                <input type="number" name="radius_km" placeholder="Radius (km)">
+                <button type="submit">Search</button>
+            </form>
+            <pre id="results"></pre>
             <script>
                 document.getElementById('ask-form').onsubmit = async function(e) {
                     e.preventDefault();
@@ -69,6 +79,16 @@ async def root():
                     });
                     const data = await response.json();
                     document.getElementById('answer').innerText = data.answer;
+                };
+                document.getElementById('provider-search').onsubmit = async function(e) {
+                    e.preventDefault();
+                    const drg = e.target.drg.value;
+                    const zip = e.target.zip.value;
+                    const radius_km = e.target.radius_km.value;
+                    const params = new URLSearchParams({ drg, zip, radius_km });
+                    const response = await fetch('/providers?' + params.toString());
+                    const data = await response.json();
+                    document.getElementById('results').innerText = JSON.stringify(data, null, 2);
                 };
             </script>
         </body>
