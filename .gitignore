@@ -1,5 +1,7 @@
 # --- Python bytecode / builds ---
-__pycache__/
+*__pycache__/
+/api/__pycache__/
+/migration/__pycache__/
 *.py[cod]
 *.so
 *.egg-info/

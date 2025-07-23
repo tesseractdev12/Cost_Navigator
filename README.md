@@ -91,11 +91,11 @@ curl -X POST "http://localhost:8000/ask" -H "Content-Type: application/json" -d 
 
 ## 🛠️ Makefile Commands
 - `make chmod` — Change the mode of bash files to be executable 
-- `make build` — Build Docker Compose services
-- `make up` — Start the stack (app + db)
+- `make infrastructure-build` — Build Docker Compose services
+- `make infrastructure-up` — Start the stack (app + db)
 - `make env` — Copy `.env.example` to `.env` for OpenAI key setup
 - `make seed` — Seed the database (run ETL in container)
-- `make seed` — Seed the database (run ETL in container)
+- `make infrastructure-down` — To turn down the infrastructure
 
 ---
 
