@@ -17,7 +17,9 @@ COPY . .
 # Expose port
 EXPOSE 8000
 
+
+
 # Run the FastAPI app
 # CMD [".venv/bin/uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"] 
 
-ENTRYPOINT ["./seed.sh"]
+ENTRYPOINT ["./scripts/run.sh"]

@@ -5,4 +5,5 @@ asyncpg
 pandas
 langchain
 langchain-openai
-python-dotenv 
+python-dotenv
+pgeocode 

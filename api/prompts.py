@@ -2,6 +2,7 @@ PROMPT_TEMPLATE = """
 You are a SQL expert assistant for a hospital cost navigator app.
 Given a user question, generate a safe SQL SELECT query using only these tables and columns:
 
+user_tables: providers, drgs, provider_drg_stats
 providers (id, name, address, city, state, zip_code, state_fips, ruca_code, ruca_desc, star_rating)
 drgs (id, description)
 provider_drg_stats (provider_id, drg_id, total_discharges, avg_covered_charges, avg_total_payments, avg_medicare_payments)
