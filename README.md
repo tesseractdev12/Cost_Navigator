@@ -25,7 +25,7 @@ A minimal web service for searching hospitals by MS-DRG procedure, viewing estim
      ```bash
      make env
      make chmod
-     # Then edit .env and set OPENAI_API_KEY=sk-...
+     
      ```
 
 3. **Build and Start the App and Database**
@@ -85,7 +85,9 @@ curl -X POST "http://localhost:8000/ask" -H "Content-Type: application/json" -d 
 
 ## 🎬 Demo
 - See attached Loom video for a walkthrough.
-- Example GIF/clip: (insert here)
+[Loom video link-1](https://www.loom.com/share/25854b4717534bc48e327c2094444c90?sid=85ce5c88-801b-47fa-905c-510514e7d87d)
+- Demo video 
+[Endpoint-testing](https://www.loom.com/share/03fc28e903c34dd7b0297307b8ef9257)
 
 ---
 
